@@ -18,6 +18,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.Timer;
@@ -117,7 +118,33 @@ public class CA_GUI extends JPanel implements ActionListener{
             caGrid.iterate();
         }
         else if(ae.getSource() == seed) {
-            caGrid.seed();
+            int width = 0;
+            int height = 0;
+            long seed = 0;
+            try {
+                String widthInput = JOptionPane.showInputDialog("Width[100]:");
+                if(widthInput.length() > 0) {
+                    width = Integer.parseInt(widthInput);
+                } else {
+                    width = 100;
+                }
+                String heightInput = JOptionPane.showInputDialog("Height[100]:");
+                if(heightInput.length() > 0) {
+                    height = Integer.parseInt(heightInput);
+                } else {
+                    height = 100;
+                }
+                String seedInput = JOptionPane.showInputDialog("Seed[None]:");
+                if(seedInput.length() > 0) {
+                    seed = Long.parseLong(seedInput);
+                    caGrid.seed(width, height, seed);
+                } else {
+                    caGrid.seed(width, height);
+                }
+                //caGrid.seed();
+            } catch(NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, e);
+            }
         }
         else if(ae.getSource() == neighbourhood) {
             if(neighbourhood.getSelectedItem() instanceof NeighbourhoodStrategy) {

@@ -39,27 +39,35 @@ public class CA_Grid extends JComponent{
         ca.seedMap();
         repaint(); 
     }
+    public void seed(int width, int height) {
+        ca = new CellularAutomata(width, height);
+        ca.setSeedPercent(0.6);
+        ca.seedMap();
+        repaint(); 
+    }
+    public void seed(int width, int height, long seed) {
+        ca = new CellularAutomata(width, height);
+        ca.setSeedPercent(0.6);
+        ca.seedMap(seed);
+        repaint(); 
+    }
     public void setNeighbourhood(NeighbourhoodStrategy neighbourhood) {
         this.neighbourhood = neighbourhood;
     }
     public void setBirthString(int[] birthString) {
         this.birthString = birthString;
-        System.err.println(birthString);
     }
     public void setSurviveString(int[] surviveString) {
         this.surviveString = surviveString;
-        System.err.println(surviveString);
     }
     public void iterate() {
         ca.iterate(birthString, surviveString, neighbourhood);
-        System.out.println("===Generation " + ca.getGeneration() + "===");
-        System.out.println(ca);
+        //System.out.println("===Generation " + ca.getGeneration() + "===");
+        //System.out.println(ca);
         repaint();
     }
     @Override
     public void paintComponent(Graphics g) {
-        System.out.println("GridX: " + getWidth() + ", GridY: " + getHeight());
-        
         Cell[][] grid = ca.getGrid();
         int gridWidth = grid.length;
         int gridHeight = grid[0].length;
@@ -68,8 +76,6 @@ public class CA_Grid extends JComponent{
         // theres a gap due to integer division so find offset to center
         int offsetX = (getWidth() - (cellWidth * gridWidth)) / 2;
         int offsetY = (getHeight() - (cellHeight * gridHeight)) / 2;
-        System.out.println("offsetX: " + offsetX + ", offsetY: " + offsetY);
-        System.out.println("total cell area: " + cellWidth * gridWidth + ", " + cellHeight * gridHeight);
         int countAlive = 0;
         int countDead = 0;
         

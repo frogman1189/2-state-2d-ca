@@ -7,7 +7,11 @@ package cellular_automata;
 
 import cellular_automata.neighbourhood.NeighbourhoodStrategy;
 import cellular_automata.neighbourhood.MooreNeighbourhood;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -20,6 +24,7 @@ public class CellularAutomata {
     private int generation;
     private Random rand;
     private double seedPercent;
+    private static final int MAX_THREADS = 100;
     public CellularAutomata(int width, int height) {
         this.width = width;
         this.height = height;
@@ -73,6 +78,32 @@ public class CellularAutomata {
         }
         generation++;
     }
+    public void threadedIterate(int[] birthString, int[] surviveString, NeighbourhoodStrategy neighbourhood) {
+        for(int x = 0; x < width; x++) {
+            for(int y = 0; y < height; y++) {
+                grid[x][y].setState(grid[x][y].state);
+            }
+        }
+        ArrayList<Thread> threadList = new ArrayList<>();
+        for(int x = 0; x < width; x++) {
+            for(int y = 0; y < height; y++) {
+                while(Thread.activeCount() > MAX_THREADS) {
+                }
+                RuleThread r = new RuleThread(grid, x, y, birthString, surviveString, neighbourhood);
+                Thread t = new Thread(r);
+                threadList.add(t);
+                t.run();
+            }
+        }
+        for(Thread t: threadList) {
+            try {
+                t.join();
+            } catch (InterruptedException ex) {
+                Logger.getLogger(CellularAutomata.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        generation++;
+    }
     public int getGeneration() {
         return generation;
     }
@@ -81,7 +112,6 @@ public class CellularAutomata {
         int currentCell = grid[posX][posY].state;
         int nextCellState = Cell.DEAD;
         
-        //grid[posX][posY].state = Cell.DEAD;
         if(currentCell == Cell.DEAD) {
             for(int i=0; i < birthString.length; i++) {
                 if(neighbourCount == birthString[i]) {
@@ -99,19 +129,6 @@ public class CellularAutomata {
         }
         grid[posX][posY].setState(nextCellState);
     }
-    /*private void rule(int posX, int posY, int[] birthString, int[] surviveString, NeighbourhoodStrategy neighbourhood) {
-        int neighbourCount = neighbourhood.neighbourhood(grid, posX, posY);
-        int currentCell = grid[posX][posY].state;
-        int nextCellState = Cell.DEAD;
-        
-        if(neighbourCount > 4) {
-            nextCellState = Cell.ALIVE;
-        }
-        else if(neighbourCount == 4 && currentCell == Cell.ALIVE) {
-            nextCellState = Cell.ALIVE;
-        }
-        grid[posX][posY].setState(nextCellState);
-    }*/
     public void iterateGenerations(int iterationCount, int[] birthString, int[] surviveString, NeighbourhoodStrategy neighbourhood) {
         for(int i=0; i < iterationCount; i++) {
             iterate(birthString, surviveString, neighbourhood);
@@ -145,27 +162,22 @@ public class CellularAutomata {
     }
     
     public static void main(String[] args) {
-        CellularAutomata cave = new CellularAutomata(50,20);
+        CellularAutomata cave = new CellularAutomata(10,10);
         cave.setSeedPercent(0.6);
-        cave.seedMap();
+        cave.seedMap(1);
         System.out.println("===Initial Configuration===");
         System.out.println(cave);
         
         //int[] conwayBirthSt 3,= {3};
         //int[] conwaySurviveString = {2, 3};
         
-        //int[] caveBirthString = {5,6,7,8};
-        //int[] caveSurviveString = {4,5,6,7,8};
+        int[] caveBirthString = {5,6,7,8};
+        int[] caveSurviveString = {4,5,6,7,8};
         
-        int[] hexBirthString = {6};
-        int[] hexSurviveString = {3,4,5,6};
-        for(int i=0; i < 20; i++) {
-            //if(i % 2 == 1) {
-            //    cave.iterate(conwayBirthString, conwaySurviveString);
-            //}
-            //else {
-                cave.iterate(hexBirthString, hexSurviveString);
-            //}
+        //int[] hexBirthString = {6};
+        //int[] hexSurviveString = {3,4,5,6};
+        for(int i=0; i < 3; i++) {
+                cave.threadedIterate(caveBirthString, caveSurviveString, new MooreNeighbourhood());
             System.out.println("===Generation " + cave.getGeneration() + "===");
             System.out.println(cave);
         }
